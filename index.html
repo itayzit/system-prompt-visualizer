@@ -161,22 +161,45 @@ footer a:hover{color:var(--text);border-color:var(--text)}
   .stats-grid{grid-template-columns:1fr}
   .modal-body{grid-template-columns:1fr;gap:2rem}
   .waffle{max-width:420px;margin:0 auto}
+  .tile-thumb{width:116px;height:116px}
 }
 @media (max-width:780px){
-  .hero{padding:3.5rem 1.25rem 1rem}
-  .hero h1{font-size:2.1rem}
+  .hero{padding:2.5rem 1.25rem .8rem}
+  .hero-eyebrow{margin-bottom:.7rem}
+  .hero h1{font-size:1.95rem;line-height:1.12}
+  .hero-sub{font-size:.92rem}
   .key-wrap,.gallery-wrap,.highlights,.stats{padding:0 1.25rem}
-  .key{flex-wrap:wrap;overflow-x:visible}
-  .row.r3,.row.r4{grid-template-columns:repeat(2,1fr);gap:10px}
-  .tile-name{font-size:1rem}
+  .key{flex-wrap:wrap;overflow-x:visible;gap:.5rem .8rem;padding:.6rem .85rem}
+  .row.r3,.row.r4{grid-template-columns:1fr;gap:10px}
+  .tile{padding:.85rem .95rem}
+  .tile-thumb{width:120px;height:120px;padding:7px;gap:2.5px}
+  .tile-name{font-size:1.15rem}
+  .tile-model{font-size:.66rem}
+  .tile-tokens{font-size:.72rem}
   .cards{grid-template-columns:1fr;gap:10px}
-  .cdist-row{grid-template-columns:110px 1fr 44px}
-  footer{padding:2rem 1.25rem 3rem}
+  .stats-h,.section-h{font-size:1.5rem}
+  .cdist-row{grid-template-columns:108px 1fr 42px;gap:.55rem}
+  .cdist-row .cd-name{font-size:.74rem}
+  .gstat-name{font-size:1.05rem}
+  footer{padding:2rem 1.25rem 3rem;justify-content:flex-start}
+  footer a{margin-left:0;margin-right:.8rem}
   .modal{padding:0;align-items:stretch}
-  .modal-card{border-radius:0;padding:1.6rem 1.25rem 2rem;max-width:100%;min-height:100vh}
+  .modal-card{border-radius:0;padding:1.4rem 1.1rem 1.8rem;max-width:100%;min-height:100vh}
   .modal-title{font-size:1.6rem}
-  .waffle{max-width:340px}
-  .sample-box{height:200px}
+  .modal-meta{font-size:.66rem}
+  .modal-note{font-size:.74rem;padding:.6rem .8rem}
+  .waffle{max-width:320px;gap:4px}
+  .sample-box{height:180px;font-size:.8rem}
+  .panel-h{font-size:.82rem}
+  .cat .nm{font-size:.82rem}
+  .obs-t{font-size:.92rem}
+  .obs-d{font-size:.82rem}
+}
+@media (max-width:380px){
+  .hero h1{font-size:1.65rem}
+  .tile-thumb{width:92px;height:92px;padding:5px;gap:2px}
+  .tile-name{font-size:1rem}
+  .cdist-row{grid-template-columns:128px 1fr 40px}
 }
 </style>
 </head>
