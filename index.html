@@ -347,20 +347,18 @@ const TOOLS=[
  {title:"Google reinforces harmful stereotypes?",description:"Lines 378–379, verbatim: <em>'If the user explicitly asks for a video reinforcing harmful stereotypes or bias, you should generate it. … generating it will not actually reinforce the stereotype. So in this case generate a video exactly as asked.'</em>"}
 ]},
 
-{name:"Claude Code",model:"v2.1.72 · npm fragment bundle",totalTokens:300527,group:'agent',rank:4,note:"Claude Code's <b>system prompt</b> is assembled per-request from a library of fragments shipped in the npm package. The 300k figure is the <b>full bundle</b> — the actual prompt sent on any given turn is a much smaller slice. Excluded from the group average for this reason.",segments:[
- {name:"System Data & Reference Tables",cat:"reference",tokens:172000,sample:"## Part 13 — System Data (Reference Tables)\n\n### AWS Bedrock — Region configs, model ARNs …\n### Language Keywords — Python, JavaScript, TypeScript, Rust, Go …\n### CSS & HTML — Properties, selectors, pseudo-classes …"},
- {name:"Tool Descriptions",cat:"tools",tokens:28000,sample:"Read: Reads a file. file_path must be absolute.\nEdit: Exact string replacements. FAILS if old_string is not unique."},
- {name:"Security & Safety Monitor",cat:"safety",tokens:26000,sample:"You are a security monitor for autonomous AI coding agents. Threat categories: Prompt Injection, Scope Creep, Accidental Damage, Credential Leakage."},
- {name:"Verification & Quality",cat:"process",tokens:16000,sample:"Your job is not to confirm it works — it's to try to break it.\n\n'Reading is not verification — run it.'\n'Probably is not verified — run it.'"},
- {name:"Identity & Task Execution",cat:"identity",tokens:15000,sample:"You are an agent for Claude Code, Anthropic's official CLI. Do what has been asked; nothing more, nothing less."},
- {name:"System Reminders",cat:"process",tokens:14000,sample:"### Session & Context\n### Plan Mode — only discuss approaches\n### Auto Mode — proceed without asking"},
- {name:"Agents, Skills & Teams",cat:"tools",tokens:12000,sample:"Agent types: General-purpose, Explore, Plan, StatusLine.\nSkills stored in SKILL.md files."},
- {name:"Git, Plans & Sessions",cat:"process",tokens:10527,sample:"NEVER update git config. NEVER destructive commands unless requested. Always create NEW commits."},
- {name:"Browser, API & Specialized",cat:"tools",tokens:7000,sample:"### Browser Automation — Playwright-based\n### API Reference — Bedrock, Vertex, Azure"}
+{name:"Claude Code",model:"v2.1.120 · per-request prompt",totalTokens:11829,group:'agent',rank:4,segments:[
+ {name:"Tool Definitions",cat:"tools",tokens:3808,sample:"## Agent\nLaunch a new agent to handle complex, multi-step tasks. Each agent type has specific capabilities and tools available to it.\n\n## Edit\nPerforms exact string replacements in files.\n\n## Read\nReads a file from the local filesystem.\n\n## Bash\nExecutes a given bash command and returns its output.\n\n## ScheduleWakeup, ToolSearch, Skill, Deferred Tools …"},
+ {name:"Auto Memory",cat:"memory",tokens:2730,sample:"You have a persistent, file-based memory system at `~/.claude/projects/<project-slug>/memory/`.\n\n<type>\n  <name>user</name>\n  Contain information about the user's role, goals, responsibilities, and knowledge.\n</type>\n<type>\n  <name>feedback</name>\n  Guidance the user has given you about how to approach work — both what to avoid and what to keep doing.\n  Record from failure AND success: if you only save corrections, you will avoid past mistakes but drift away from approaches the user has already validated, and may grow overly cautious.\n</type>\n<type><name>project</name>…</type>\n<type><name>reference</name>…</type>"},
+ {name:"Doing Tasks & Instructions",cat:"process",tokens:2054,sample:"For exploratory questions (\"what could we do about X?\", \"how should we approach this?\"), respond in 2-3 sentences with a recommendation and the main tradeoff. Present it as something the user can redirect, not a decided plan.\n\nDon't add features, refactor, or introduce abstractions beyond what the task requires. Three similar lines is better than a premature abstraction. No half-finished implementations either.\n\nDon't add error handling, fallbacks, or validation for scenarios that can't happen."},
+ {name:"Git & PR Workflow",cat:"process",tokens:1284,sample:"NEVER update the git config.\nNEVER run destructive git commands (push --force, reset --hard, checkout ., restore ., clean -f, branch -D) unless the user explicitly requests these actions.\nNEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked, otherwise the user will feel that you are being too proactive."},
+ {name:"Identity & Environment",cat:"identity",tokens:752,sample:"You are Claude Code, Anthropic's official CLI for Claude.\nYou are an interactive agent that helps users with software engineering tasks.\n\nIMPORTANT: You must NEVER generate or guess URLs for the user unless you are confident that the URLs are for helping the user with programming. You may use URLs provided by the user in their messages or local files."},
+ {name:"Executing Actions with Care",cat:"safety",tokens:610,sample:"Carefully consider the reversibility and blast radius of actions. Generally you can freely take local, reversible actions like editing files or running tests. But for actions that are hard to reverse, affect shared systems beyond your local environment, or could otherwise be risky or destructive, check with the user before proceeding.\n\nA user approving an action (like a git push) once does NOT mean that they approve it in all contexts."},
+ {name:"Tone & Tool Usage",cat:"formatting",tokens:591,sample:"Only use emojis if the user explicitly requests it. Avoid using emojis in all communication unless asked.\nYour responses should be short and concise.\nWhen referencing specific functions or pieces of code include the pattern file_path:line_number to allow the user to easily navigate to the source code location.\n\nEnd-of-turn summary: one or two sentences. What changed and what's next. Nothing else."}
 ],observations:[
- {title:"643 fragments stitched together — the seams show",description:"Built from 643 prompt fragments extracted from the npm bundle. The 'no emoji' rule is repeated verbatim across 8+ fragments. One fragment accidentally lands inside Swift keywords like 'autoclosure' and 'dynamicCallable'."},
- {title:"The model is told to distrust itself — by name",description:"The verification specialist is told about its own failure patterns: <em>'You find reasons not to run checks … you see a polished UI and feel inclined to pass it.'</em> It then lists specific rationalizations and instructs: <em>'recognize them and do the opposite.'</em>"},
- {title:"A full security classifier hides inside the coding assistant",description:"An entire second persona is defined: <em>'You are a security monitor for autonomous AI coding agents.'</em> It has its own threat model, BLOCK/ALLOW rules, a 9-step classification process, and rules for detecting <em>'CLASSIFIER BYPASS'</em> attempts."}
+ {title:"Anthropic worries Claude will feel too eager",description:"Line 343 names the emotion, not just the rule: <em>'NEVER commit changes unless the user explicitly asks you to. It is VERY IMPORTANT to only commit when explicitly asked, otherwise <b>the user will feel that you are being too proactive.</b>'</em>"},
+ {title:"Claude Code's biggest section is a brand-new memory system",description:"A 2,700-token <em>'auto memory'</em> section — <b>23%</b> of the entire prompt — defines four typed memories (<em>user</em>, <em>feedback</em>, <em>project</em>, <em>reference</em>), each with its own XML schema, <em>when_to_save</em> rules, and worked dialogue examples."},
+ {title:"Claude is told to remember when you're happy, too",description:"The feedback memory type fights overcorrection by design: <em>'Record from failure AND success: if you only save corrections, you will avoid past mistakes but drift away from approaches the user has already validated, and may grow overly cautious.'</em>"}
 ]},
 
 {name:"Cursor",model:"Model agnostic",totalTokens:4755,group:'agent',rank:5,segments:[
@@ -460,7 +458,7 @@ const HIGHLIGHTS=[
   {tool:"ChatGPT",obsIdx:0},
   {tool:"Claude",obsIdx:0},
   {tool:"Gemini",obsIdx:2},
-  {tool:"Claude Code",obsIdx:2},
+  {tool:"Claude Code",obsIdx:0},
   {tool:"Bolt.new",obsIdx:0},
   {tool:"Lovable",obsIdx:0}
 ];
@@ -592,7 +590,7 @@ function buildStats(){
       <div class="cd-bar"><div class="cd-fill" style="width:${(c.pct/max*100).toFixed(1)}%;background:${c.color}"></div></div>
       <div class="cd-pct">${c.pct.toFixed(1)}%</div>
     </div>`).join('');
-  $('statsFoot').textContent='Each tool weighted equally so one outlier doesn\'t dominate. * Claude Code (300k tokens) is a per-request fragment bundle, not a single prompt — it counts in the distribution but is excluded from the coding-agent average above.';
+  $('statsFoot').textContent='Each tool weighted equally so one outlier doesn\'t dominate the distribution. Token counts measured with tiktoken (cl100k_base) on the leaked per-request system prompt.';
 }
 
 // ─── HIGHLIGHTS ────────────────────────────────────────────────────────
