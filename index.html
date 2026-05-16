@@ -227,7 +227,7 @@ footer a:hover{color:var(--text);border-color:var(--text)}
 </section>
 
 <section class="stats">
-  <h2 class="stats-h">By the numbers</h2>
+  <h2 class="stats-h">Numbers</h2>
   <p class="stats-sub">Three groups of products, three very different prompt budgets — and where the tokens actually go.</p>
   <div class="stats-grid">
     <div class="stats-panel">
@@ -594,7 +594,7 @@ function buildStats(){
       <div class="cd-bar"><div class="cd-fill" style="width:${(c.pct/max*100).toFixed(1)}%;background:${c.color}"></div></div>
       <div class="cd-pct">${c.pct.toFixed(1)}%</div>
     </div>`).join('');
-  $('statsFoot').textContent='Each tool weighted equally so one outlier doesn\'t dominate the distribution. Token counts measured with tiktoken (cl100k_base) on the leaked per-request system prompt.';
+  $('statsFoot').textContent='Token counts measured with tiktoken (cl100k_base).';
 }
 
 // ─── HIGHLIGHTS ────────────────────────────────────────────────────────
