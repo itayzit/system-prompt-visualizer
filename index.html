@@ -146,6 +146,9 @@ footer a:hover{color:var(--text);border-color:var(--text)}
 .sample-box::-webkit-scrollbar-track{background:transparent}
 .sample-box::-webkit-scrollbar-thumb{background:rgba(0,0,0,.22);border-radius:4px}
 .sample-box::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.35)}
+.sample-box .mark{background:rgba(234,179,8,.4);border-radius:2px;padding:1px 0;transition:background .9s ease}
+.sample-box .mark.fade{background:transparent}
+.sample-box.loading{color:var(--text-3);font-style:italic}
 .source-link{color:var(--text-2);text-decoration:none;border-bottom:1px solid var(--border-strong);padding-bottom:1px;transition:color .15s,border-color .15s}
 .source-link:hover{color:var(--text);border-color:var(--text)}
 
@@ -321,7 +324,7 @@ const TOOLS=[
 ]},
 
 {name:"Claude",model:"Opus 4.7 · claude.ai",totalTokens:45719,group:'model',rank:2,segments:[
- {name:"Tool Definitions",cat:"tools",tokens:14600,sample:"Slack:slack_send_message — Sends a message to a Slack channel. Once sent, do NOT follow up unless asked.\n\nDrive Search Tool: searches Google Drive for documents, spreadsheets, presentations.\nCalendar: list_events, fetch_event, find_free_time."},
+ {name:"Tool Definitions",cat:"tools",tokens:14600,sample:"Google Calendar:list_events — Lists calendar events in a given calendar satisfying the given conditions.\n\nDrive search & retrieval, Gmail, Slack, web_search, web_fetch, weather, places."},
  {name:"Memory System",cat:"memory",tokens:6800,sample:"Claude's memories are dynamically inserted into context at run-time. Memories don't persist across users.\n\nIf a person asks you to remember or forget something and you don't use memory_user_edits, you are lying to them."},
  {name:"Past Chats Tools",cat:"memory",tokens:5300,sample:"Trigger patterns: 'we discussed', 'I mentioned', 'last time', 'remember when', 'as I said before' …"},
  {name:"Behavior, Tone & Safety",cat:"safety",tokens:4500,sample:"Claude should not use bullet points or lists unless explicitly asked. Instead, write in prose and paragraphs."},
@@ -621,20 +624,101 @@ function buildCards(){
 // ─── MODAL ─────────────────────────────────────────────────────────────
 let activeCat=null;
 let modalTool=null;
+const promptCache={};
+let currentSlug=null;
+let pendingCat=null;
+
+const slugOf=name=>name.toLowerCase().replace(/\.new$/,'').replace(/\s+/g,'-');
+const escHtml=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+async function loadFullPrompt(tool){
+  const slug=slugOf(tool.name);
+  currentSlug=slug;
+  const sb=$('mdSample');
+
+  if(!promptCache[slug]){
+    sb.textContent='Loading prompt…';
+    sb.classList.add('loading');
+    try{
+      const res=await fetch(`prompts/${slug}.txt`);
+      if(!res.ok)throw new Error('fetch failed');
+      promptCache[slug]=await res.text();
+    }catch(e){
+      promptCache[slug]=tool.segments.map(s=>s.sample).join('\n\n— — —\n\n');
+    }
+  }
+  if(currentSlug!==slug)return;
+
+  sb.textContent=promptCache[slug];
+  sb.scrollTop=0;
+  sb.classList.remove('loading');
+
+  if(pendingCat!==null){
+    const c=pendingCat; pendingCat=null;
+    jumpToCategory(tool,c);
+  }
+}
+
+function jumpToCategory(tool,catKey){
+  const slug=slugOf(tool.name);
+  const text=promptCache[slug];
+  const sb=$('mdSample');
+  if(!text){pendingCat=catKey;return}
+
+  const seg=tool.segments.find(s=>s.cat===catKey);
+  if(!seg)return;
+
+  // Find anchor: first distinctive line of the sample, with progressive shortening
+  const lines=(seg.sample||'').split('\n').map(l=>l.trim()).filter(l=>l.length>=10);
+  let idx=-1, anchorLen=0;
+  outer:for(const line of lines){
+    for(const len of [line.length,80,60,40,20]){
+      const t=line.substring(0,Math.min(len,line.length));
+      if(t.length<10)continue;
+      const i=text.indexOf(t);
+      if(i>=0){idx=i;anchorLen=t.length;break outer}
+    }
+  }
+
+  if(idx>=0){
+    const before=escHtml(text.substring(0,idx));
+    const match=escHtml(text.substring(idx,idx+anchorLen));
+    const after=escHtml(text.substring(idx+anchorLen));
+    sb.innerHTML=before+`<span class="mark" id="seg-mark">${match}</span>`+after;
+
+    const marker=document.getElementById('seg-mark');
+    const sbRect=sb.getBoundingClientRect();
+    const mRect=marker.getBoundingClientRect();
+    sb.scrollTop=sb.scrollTop+(mRect.top-sbRect.top)-12;
+
+    setTimeout(()=>{const m=document.getElementById('seg-mark');if(m)m.classList.add('fade')},1500);
+  }else{
+    // Fallback: proportional position by cumulative segment tokens
+    let acc=0;
+    for(const s of tool.segments){if(s===seg)break; acc+=s.tokens}
+    sb.scrollTop=Math.max(0,(sb.scrollHeight-sb.clientHeight)*(acc/tool.totalTokens));
+  }
+}
+
+function resetSample(){
+  if(!modalTool)return;
+  const text=promptCache[slugOf(modalTool.name)];
+  const sb=$('mdSample');
+  if(text){sb.textContent=text}
+  sb.scrollTop=0;
+}
+
 function openModal(name){
   const t=findTool(name); if(!t)return;
   modalTool=t;
+  pendingCat=null;
   $('mdTitle').textContent=t.name;
   const metaParts=[t.model, `${pages(t.totalTokens)} pages`, `${fmt(t.totalTokens)} tokens`].filter(Boolean);
   $('mdMeta').textContent=metaParts.join(' · ');
-  const slug=t.name.toLowerCase().replace(/\.new$/,'').replace(/\s+/g,'-');
+  const slug=slugOf(t.name);
   $('mdRawLink').href=`prompts/${slug}.txt`;
-  if(t.note){
-    $('mdNote').innerHTML=t.note;
-    $('mdNote').style.display='block';
-  } else {
-    $('mdNote').style.display='none';
-  }
+  if(t.note){$('mdNote').innerHTML=t.note;$('mdNote').style.display='block';}
+  else{$('mdNote').style.display='none';}
 
   const sqs=buildWaffleSquares(t,100);
   $('mdWaffle').innerHTML=sqs.map(s=>`<div class="sq" data-cat="${s.cat}" style="background:${s.color}"></div>`).join('');
@@ -668,10 +752,8 @@ function openModal(name){
   });
 
   activeCat=null;
-  const firstSeg=t.segments[0];
-  $('mdSample').textContent=firstSeg.sample;
-  $('mdSample').scrollTop=0;
-  $('mdSampleLabel').textContent=`Sample · ${CATS[firstSeg.cat].label}`;
+  $('mdSampleLabel').textContent='Full prompt';
+  loadFullPrompt(t);
 
   $('mdObs').innerHTML=t.observations.map((o,i)=>`
     <div class="obs">
@@ -691,22 +773,16 @@ function activateCat(catKey){
     $('mdWaffle').classList.remove('dim');
     $('mdCats').querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));
     activeCat=null;
-    const firstSeg=modalTool.segments[0];
-    $('mdSample').textContent=firstSeg.sample;
-    $('mdSample').scrollTop=0;
-    $('mdSampleLabel').textContent=`Sample · ${CATS[firstSeg.cat].label}`;
+    $('mdSampleLabel').textContent='Full prompt';
+    resetSample();
     return;
   }
   activeCat=catKey;
   $('mdWaffle').classList.add('dim');
   $('mdWaffle').querySelectorAll('.sq').forEach(s=>s.classList.toggle('on',s.dataset.cat===catKey));
   $('mdCats').querySelectorAll('.cat').forEach(c=>c.classList.toggle('on',c.dataset.cat===catKey));
-  const segs=modalTool.segments.filter(s=>s.cat===catKey).sort((a,b)=>b.tokens-a.tokens);
-  if(segs.length){
-    $('mdSample').textContent=segs[0].sample;
-    $('mdSample').scrollTop=0;
-    $('mdSampleLabel').textContent=`Sample · ${CATS[catKey].label}`;
-  }
+  $('mdSampleLabel').textContent=`Full prompt · jumped to ${CATS[catKey].label}`;
+  jumpToCategory(modalTool,catKey);
 }
 function closeModal(){
   $('modal').classList.remove('on');
