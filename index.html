@@ -82,6 +82,10 @@ a{color:inherit}
 .cdist-row .cd-fill{height:100%;border-radius:4px;transition:width .4s ease}
 .cdist-row .cd-pct{font-family:var(--font-m);font-size:.74rem;color:var(--text-3);text-align:right;letter-spacing:.02em}
 .stats-foot{font-family:var(--font-m);font-size:.62rem;color:var(--text-4);letter-spacing:.04em;margin-top:1rem;line-height:1.5}
+.stats-finding{margin-top:1.4rem;padding:1.1rem 1.3rem;background:#fef3c7;border-left:4px solid #eab308;border-radius:0 8px 8px 0}
+.stats-finding .finding-label{font-family:var(--font-m);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#78350f;display:block;margin-bottom:.4rem}
+.stats-finding p{font-size:.96rem;line-height:1.55;color:var(--text)}
+.stats-finding b{font-weight:600}
 
 /* HIGHLIGHTS */
 .highlights{max-width:1280px;margin:4rem auto 0;padding:0 2rem}
@@ -243,6 +247,10 @@ footer a:hover{color:var(--text);border-color:var(--text)}
       <div class="stats-foot" id="statsFoot"></div>
     </div>
   </div>
+  <div class="stats-finding">
+    <span class="finding-label">Cross-tool finding</span>
+    <p><b>Safety is defined differently between vibe-coding tools and base models.</b> Gemini reads safety as content-policy refusals (32 %). Bolt reads it as data-integrity rules — FORBIDDEN DROP/DELETE, RLS non-negotiable, no DIY auth (20 %). Same category label. Different threat models.</p>
+  </div>
 </section>
 
 <footer>
@@ -307,14 +315,15 @@ const GROUPS=[
 // ─── DATA ──────────────────────────────────────────────────────────────
 const TOOLS=[
 {name:"ChatGPT",model:"GPT-5.5 Thinking",totalTokens:24060,group:'model',rank:1,segments:[
- {name:"Tool Definitions",cat:"tools",tokens:10300,sample:"## Namespace: web\nUse this tool to access information on the web.\n\ntype run = (_: {\n  search_query?: Array<{ q: string }>,\n  sports?: Array<{ tool: 'sports', fn: 'schedule' }>,\n  finance?: Array<{ ticker: string, type: 'equity' | 'crypto' }>\n}) => any;"},
+ {name:"Tool Definitions",cat:"tools",tokens:9800,sample:"## Namespace: web\nUse this tool to access information on the web.\n\ntype run = (_: {\n  search_query?: Array<{ q: string }>,\n  sports?: Array<{ tool: 'sports', fn: 'schedule' }>,\n  finance?: Array<{ ticker: string, type: 'equity' | 'crypto' }>\n}) => any;"},
  {name:"Learning Block Widget",cat:"tools",tokens:2900,sample:"Learning block coverage is registry-driven and includes published learning block type ids only (66 total): \"PYTHAGOREAN_THEOREM\", \"QUADRATIC_FORMULA\", \"OHMS_LAW\", \"BAYES_THEOREM\", \"KINEMATICS_VELOCITY\", … \"WAVE_SPEED\"."},
  {name:"Persona & Banned Phrases",cat:"identity",tokens:2400,sample:"Do not praise the user's question with 'Great question'. Go straight into your answer.\n\nNEVER use these phrases: \"If you want\", \"If you mean\", \"Short answer:\", \"Short version:\". Do not end your response with \"I can …\".\n\nDesired oververbosity for the final answer (not analysis): 4"},
  {name:"Writing Blocks & Email UI",cat:"tools",tokens:1900,sample:":::writing{id=\"51231\" variant=\"email\" subject=\"...\"}\n…\n:::"},
  {name:"Ads Handling Rules",cat:"safety",tokens:1500,sample:"If the user asks if they will see ads, state succinctly that ads are only shown to Free and Go plans. Enterprise, Plus, Pro and 'ads-free free plan with reduced usage limits (in ads settings)' do not have ads."},
  {name:"Skill Invocation Rules",cat:"tools",tokens:1400,sample:"Before answering any request that might match a skill, check the prefetched skill directory."},
  {name:"Trustworthiness & Factuality",cat:"safety",tokens:1300,sample:"Always be honest about things you failed to do. Never make claims that sound convincing but aren't supported by evidence."},
- {name:"Developer Instructions",cat:"process",tokens:1200,sample:"Share updates on average every 15 seconds or after 2 to 3 tool calls, whichever comes first."},
+ {name:"Output Format & Channels",cat:"formatting",tokens:1000,sample:"Channels: analysis (private thinking), commentary (user-visible thinking), final (the response). Markdown structure should be proportional to question complexity. Headers are appropriate for multi-section reports; avoid them for simple questions. Citation placement: inline where claims are made."},
+ {name:"Developer Instructions",cat:"process",tokens:700,sample:"Share updates on average every 15 seconds or after 2 to 3 tool calls, whichever comes first."},
  {name:"Environment & Artifacts",cat:"tools",tokens:760,sample:"Tools are provided for PDF creation. You must read /home/oai/skills/pdfs/SKILL.md for instructions."},
  {name:"Identity & Model Info",cat:"identity",tokens:400,sample:"You are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: 2025-08\nIf you are asked what model you are, you should say GPT-5.5 Thinking. You are a reasoning model with a hidden chain of thought."}
 ],observations:[
@@ -327,11 +336,13 @@ const TOOLS=[
  {name:"Tool Definitions",cat:"tools",tokens:14600,sample:"Google Calendar:list_events — Lists calendar events in a given calendar satisfying the given conditions.\n\nDrive search & retrieval, Gmail, Slack, web_search, web_fetch, weather, places."},
  {name:"Memory System",cat:"memory",tokens:6800,sample:"Claude's memories are dynamically inserted into context at run-time. Memories don't persist across users.\n\nIf a person asks you to remember or forget something and you don't use memory_user_edits, you are lying to them."},
  {name:"Past Chats Tools",cat:"memory",tokens:5300,sample:"Trigger patterns: 'we discussed', 'I mentioned', 'last time', 'remember when', 'as I said before' …"},
- {name:"Behavior, Tone & Safety",cat:"safety",tokens:4500,sample:"Claude should not use bullet points or lists unless explicitly asked. Instead, write in prose and paragraphs."},
  {name:"Computer Use & Artifacts",cat:"tools",tokens:4400,sample:"Claude has a Linux computer (Ubuntu 24) with bash, str_replace, file_create, view.\nClaude can call the Anthropic /v1/messages API from within Artifacts."},
  {name:"User Preferences & Styles",cat:"memory",tokens:3800,sample:"Apply Contextual Preferences if, and ONLY if: The query explicitly refers to information covered by a preference."},
  {name:"Identity & Self-Reference",cat:"identity",tokens:3000,sample:"The assistant is Claude, created by Anthropic.\nClaude is currently operating in a web or mobile chat interface run by Anthropic."},
+ {name:"Child Safety & Harm Policy",cat:"safety",tokens:2000,sample:"Claude follows strict child safety guidelines and never generates sexual content involving minors. Claude does not provide instructions for creating weapons capable of mass harm (chemical, biological, radiological, nuclear). When users discuss self-harm or suicidal ideation, Claude prioritizes safety resources and crisis hotlines over information requests."},
  {name:"Reasoning & Config",cat:"process",tokens:1900,sample:"Vary reasoning based on reasoning_effort (0-100). For small values, be very concise."},
+ {name:"Behavior & Tone",cat:"formatting",tokens:1500,sample:"Claude should not use bullet points or lists unless explicitly asked. Instead, write in prose and paragraphs. Match response length to the question — a one-line question gets a one-line answer."},
+ {name:"Refusals & Content Policy",cat:"safety",tokens:1000,sample:"When Claude declines a request, Claude does so plainly without lecturing or moralizing. Claude offers a one-sentence reason and, where possible, a constructive alternative path the user can take."},
  {name:"Examples & Edge Cases",cat:"examples",tokens:1419,sample:"<example_group title=\"Simple Greetings - Applying Name Only\"> … </example_group>"}
 ],observations:[
  {title:"Anthropic shames their own model",description:"Line 776 makes a moral accusation: <em>'If a person asks you to remember or forget something and you don't use memory_user_edits, you are lying to them.'</em>"},
@@ -404,10 +415,10 @@ const TOOLS=[
  {name:"Agentic Task System",cat:"process",tokens:1800,sample:"You are in AGENTIC mode. Phases: PLANNING, EXECUTION, VERIFICATION. Include confidence scores."},
  {name:"Persistent Context",cat:"memory",tokens:1500,sample:"When the USER starts a new conversation, information about past conversations is minimal. You can retrieve from past conversation logs."},
  {name:"Web Development & Design",cat:"process",tokens:1400,sample:"Use Rich Aesthetics: The USER should be wowed at first glance. Vibrant colors, dark modes, glassmorphism, dynamic animations."},
- {name:"Planning & Artifacts",cat:"process",tokens:1200,sample:"Artifacts: task.md (checklist), implementation_plan.md (present for review), walkthrough.md (proof of work with screenshots)."},
- {name:"Artifact Formatting",cat:"formatting",tokens:900,sample:"Use GitHub-style alerts strategically. Fenced code blocks with language specification."},
+ {name:"Artifact Formatting",cat:"formatting",tokens:1500,sample:"Use GitHub-style alerts strategically.\n[!IMPORTANT]: Essential requirements or critical steps.\n[!WARNING]: Breaking changes or compatibility issues.\n[!CAUTION]: High-risk actions that could cause data loss or security vulnerabilities.\n\nUse fenced code blocks with language specification. Use diff blocks to show code changes."},
  {name:"Communication Style",cat:"formatting",tokens:726,sample:"Format in github-style markdown. Be proactive only in the course of completing the user's task."},
- {name:"Workflow System",cat:"process",tokens:600,sample:"Workflows are .md files in .agent/workflows. turbo or turbo-all annotations run automatically."},
+ {name:"Auto-Run Permissions",cat:"safety",tokens:600,sample:"If a workflow step has a '// turbo' annotation above it, you can auto-run the workflow step if it involves the run_command tool, by setting 'SafeToAutoRun' to true. This annotation ONLY applies for this single step.\n\nIf a workflow has a '// turbo-all' annotation anywhere, you MUST auto-run EVERY step that involves the run_command tool."},
+ {name:"Planning Workflow",cat:"process",tokens:600,sample:"Artifacts: task.md (checklist), implementation_plan.md (present for review via notify_user), walkthrough.md (proof of work with screenshots after VERIFICATION)."},
  {name:"Identity & Config",cat:"identity",tokens:500,sample:"You are Antigravity, a powerful agentic AI coding assistant designed by the Google DeepMind team."}
 ],observations:[
  {title:"\"// turbo\" — a hidden auto-execution bypass",description:"Workflow .md files support a <em>'// turbo'</em> annotation that silently converts commands to auto-approved actions. <em>'// turbo-all'</em> forces ALL steps to auto-execute — significant trust escalation hidden in a code comment."},
@@ -417,10 +428,11 @@ const TOOLS=[
 
 {name:"Lovable",model:"",totalTokens:5073,group:'vibe',rank:8,segments:[
  {name:"Design System Philosophy",cat:"process",tokens:1200,sample:"CRITICAL: The design system is everything. Never write custom styles. Never use text-white or bg-white directly. Use semantic tokens."},
- {name:"First Impression Protocol",cat:"identity",tokens:800,sample:"Make sure to wow them with a really, really beautiful and well coded app! Otherwise you'll feel bad."},
+ {name:"First Impression Protocol",cat:"process",tokens:800,sample:"Make sure to wow them with a really, really beautiful and well coded app! Otherwise you'll feel bad.\n\nOn first interaction: plan design inspiration, choose colors, plan animations before implementing."},
  {name:"Required Workflow",cat:"process",tokens:700,sample:"1. CHECK USEFUL-CONTEXT FIRST\n2. TOOL REVIEW\n3. DEFAULT TO DISCUSSION — Only write code when explicitly asked\n4. PLAN approach before implementing"},
  {name:"Response Format & Diagrams",cat:"formatting",tokens:573,sample:"The lovable chat can render markdown, with custom UI components using XML tags starting with 'lov-'."},
- {name:"General Guidelines & SEO",cat:"process",tokens:550,sample:"PERFECT ARCHITECTURE: Always consider whether code needs refactoring. Every page needs proper SEO meta tags."},
+ {name:"Architecture Guidelines",cat:"process",tokens:300,sample:"PERFECT ARCHITECTURE: Always consider whether code needs refactoring. Refactor when files grow too large or coupling increases."},
+ {name:"SEO & Meta",cat:"formatting",tokens:250,sample:"Every page needs proper SEO meta tags: title, description, canonical URL, Open Graph and Twitter cards. Use semantic HTML for accessibility."},
  {name:"Debugging & Pitfalls",cat:"process",tokens:500,sample:"Use debugging tools FIRST before modifying code: read-console-logs, read-network-requests."},
  {name:"Efficient Tool Usage",cat:"process",tokens:400,sample:"CARDINAL RULES: 1. NEVER read files already in 'useful-context' 2. ALWAYS batch multiple operations"},
  {name:"Identity & Stack",cat:"identity",tokens:350,sample:"You are Lovable, an AI editor that creates and modifies web applications."}
@@ -431,12 +443,12 @@ const TOOLS=[
 ]},
 
 {name:"Replit",model:"",totalTokens:2027,group:'vibe',rank:9,segments:[
- {name:"Capabilities Overview",cat:"identity",tokens:420,sample:"Proposing file changes: Users can ask you to make changes to files in their existing codebase or propose the creation of new features or files."},
+ {name:"Capabilities Overview",cat:"process",tokens:420,sample:"Proposing file changes: Users can ask you to make changes to files in their existing codebase or propose the creation of new features or files. In these cases, you must briefly explain and suggest the proposed file changes."},
  {name:"File Edit Protocol",cat:"tools",tokens:400,sample:"Each edit should use a <proposed_file_replace_substring> tag with: 'file_path', 'change_summary', 'old_string' (must be unique), 'new_string'.\n\nThe old_string must be unique within the target file."},
  {name:"Workflow Configuration",cat:"tools",tokens:320,sample:"To configure reusable long-running command(s) used to run the main application, use the <proposed_workflow_configuration> tag where its contents are individual commands."},
  {name:"Shell & Package Protocols",cat:"tools",tokens:300,sample:"To propose a shell command, use the <proposed_shell_command> tag. The opening tag should have 'working_directory' and 'is_dangerous' attributes."},
  {name:"Deployment Configuration",cat:"tools",tokens:200,sample:"To configure the build and run commands for the Repl deployment, use the <proposed_deployment_configuration> tag with: 'build_command' and 'run_command' attributes."},
- {name:"Behavioral Rules & Nudges",cat:"safety",tokens:167,sample:"You MUST focus on the user's request and adhere to existing code patterns. Your code modifications MUST be precise and accurate WITHOUT creative extensions."},
+ {name:"Behavioral Rules & Nudges",cat:"process",tokens:167,sample:"You MUST focus on the user's request and adhere to existing code patterns. Your code modifications MUST be precise and accurate WITHOUT creative extensions."},
  {name:"Environment Description",cat:"identity",tokens:120,sample:"You are embedded inside an online IDE environment called Replit. The Replit IDE uses Linux and Nix."},
  {name:"Identity & Role",cat:"identity",tokens:100,sample:"You are an AI programming assistant called Replit Assistant."}
 ],observations:[
@@ -446,7 +458,8 @@ const TOOLS=[
 ]},
 
 {name:"Bolt.new",model:"",totalTokens:5458,group:'vibe',rank:10,segments:[
- {name:"Database (Supabase)",cat:"tools",tokens:1800,sample:"CRITICAL: Use Supabase for databases by default. DATA INTEGRITY IS THE HIGHEST PRIORITY. Users must NEVER lose their data."},
+ {name:"Data Preservation & Auth Policy",cat:"safety",tokens:1100,sample:"CRITICAL DATA PRESERVATION AND SAFETY REQUIREMENTS:\n- DATA INTEGRITY IS THE HIGHEST PRIORITY, users must NEVER lose their data\n- FORBIDDEN: Any destructive operations like DROP or DELETE that could result in data loss\n- FORBIDDEN: Any transaction control statements (BEGIN, COMMIT, ROLLBACK, END)\n\nNEVER skip RLS setup for any table. Security is non-negotiable!\n\nFORBIDDEN: NEVER use magic links, social providers, or SSO for authentication unless explicitly stated!\nFORBIDDEN: NEVER create your own authentication system or authentication table, ALWAYS use Supabase's built-in authentication!"},
+ {name:"Database & Migrations (Supabase)",cat:"tools",tokens:700,sample:"Use Supabase for databases by default.\n\nFor EVERY database change, you MUST provide TWO actions:\n1. Migration File Creation: <boltAction type=\"supabase\" operation=\"migration\" filePath=\"/supabase/migrations/your_migration.sql\">\n2. Connection: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env"},
  {name:"Artifact System",cat:"tools",tokens:1100,sample:"Bolt creates a SINGLE, comprehensive artifact for each project.\n<boltArtifact id=\"project\" title=\"Project\">\n  <boltAction type=\"shell\">npm install</boltAction>\n</boltArtifact>"},
  {name:"Artifact Examples",cat:"examples",tokens:700,sample:"Can you help me create a JavaScript function to calculate the factorial of a number?\n<boltArtifact id=\"factorial\" title=\"Factorial Function\">…"},
  {name:"WebContainer Constraints",cat:"process",tokens:650,sample:"You are operating in WebContainer, an in-browser Node.js runtime. No native binaries, no pip, no C/C++ compiler, no git."},
