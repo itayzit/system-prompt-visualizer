@@ -46,9 +46,9 @@ for c, (lbl, _) in CATS.items():
     print(f"  {lbl:<18} {cat_tot[c]:>6,}  {cat_tot[c]/total*100:5.1f}%")
 
 DPI = 150
-fig = plt.figure(figsize=(15, 9.4), facecolor='#0f1115')
+fig = plt.figure(figsize=(15, 9.4), facecolor='#eef0f4')
 ax = fig.add_axes([0.03, 0.04, 0.94, 0.78])
-ax.set_facecolor('#0f1115')
+ax.set_facecolor('#eef0f4')
 
 sizes = [t for _, t, _, _ in SEGMENTS]
 colors = [CATS[c][1] for _, _, c, _ in SEGMENTS]
@@ -71,7 +71,7 @@ def fit_font(txt, dx, dy, max_pt=21.0):
 
 for (label, tok, cat, sub), r, col in zip(SEGMENTS, rects, colors):
     x, y, dx, dy = r['x'], r['y'], r['dx'], r['dy']
-    ax.add_patch(plt.Rectangle((x, y), dx, dy, facecolor=col, edgecolor='#0f1115',
+    ax.add_patch(plt.Rectangle((x, y), dx, dy, facecolor=col, edgecolor='#eef0f4',
                                linewidth=2.5, alpha=0.94))
     area = dx * dy
     pct = tok / total * 100
@@ -100,9 +100,9 @@ ax.set_xlim(0, 100); ax.set_ylim(0, 100)
 ax.invert_yaxis(); ax.axis('off')
 
 fig.text(0.03, 0.955, "What's inside Claude Code's system prompt",
-         fontsize=27, color='white', fontweight='bold')
-fig.text(0.03, 0.908, "Opus 4.8  ·  v2.1.172  ·  captured May 2026  ·  14,787 tokens  ·  blocks sized by tokens, colored by purpose",
-         fontsize=13.5, color='#9aa0aa')
+         fontsize=27, color='#111111', fontweight='bold')
+fig.text(0.03, 0.908, "Opus 4.8  ·  captured May 2026  ·  14,787 tokens  ·  blocks sized by tokens",
+         fontsize=13.5, color='#5a5f68')
 
 lx = 0.03
 for c, (lbl, col) in CATS.items():
@@ -110,12 +110,12 @@ for c, (lbl, col) in CATS.items():
     fig.patches.append(mpatches.Rectangle((lx, 0.852), 0.016, 0.016,
                        transform=fig.transFigure, facecolor=col, edgecolor='none'))
     t = f"{lbl} {pct:.0f}%"
-    fig.text(lx + 0.022, 0.853, t, fontsize=12, color='#d0d4da', fontweight='bold')
+    fig.text(lx + 0.022, 0.853, t, fontsize=12, color='#333940', fontweight='bold')
     lx += 0.022 + 0.0072 * len(t) + 0.018
 
 fig.text(0.03, 0.012, "Source: leaked Claude Code system prompt (asgeirtj/system_prompts_leaks) · tokens via tiktoken cl100k_base",
-         fontsize=9, color='#5c626c')
+         fontsize=9, color='#8a8f98')
 
 out = 'examples/claude-code-treemap.png'
-plt.savefig(out, dpi=DPI, facecolor='#0f1115', bbox_inches='tight')
+plt.savefig(out, dpi=DPI, facecolor='#eef0f4', bbox_inches='tight')
 print(f"Saved → {out}")
