@@ -18,14 +18,14 @@ CATS = {
 # subtitle='' for self-explanatory blocks.
 SEGMENTS = [
     ('Workflow tool',              4775, 'tools',   'orchestrates fleets of subagents'),
-    ('Deferred-tool &\nskill catalog', 1660, 'tools', 'names of tools loadable on demand'),
+    ('Tool &\nskill catalog', 1660, 'tools', 'names of tools loadable on demand'),
     ('AskUserQuestion',            1237, 'tools',   'multiple-choice questions to user'),
     ('Agent tool',                 1157, 'tools',   'spawns a single subagent'),
     ('ScheduleWakeup',              898, 'tools',   'timers to resume work later'),
     ('Browser\nautomation',         694, 'process', 'Chrome control rules'),
     ('Bash',                        659, 'tools',   'runs shell commands'),
-    ('Read',                        460, 'tools',   'reads files'),
-    ('Edit',                        269, 'tools',   'edits files'),
+    ('Read',                        460, 'tools',   ''),
+    ('Edit',                        269, 'tools',   ''),
     ('Write',                       177, 'tools',   ''),
     ('Memory\nsystem',              476, 'memory',  'notes kept between sessions'),
     ('Session\nguidance',           417, 'process', 'rules for this session'),
@@ -76,7 +76,12 @@ for (label, tok, cat, sub), r, col in zip(SEGMENTS, rects, colors):
     area = dx * dy
     pct = tok / total * 100
 
-    title = f"{label}\n{pct:.0f}%" if area > 4.5 else label
+    if area > 8:
+        title = f"{label}\n{pct:.0f}% · {tok:,} tk"
+    elif area > 4.5:
+        title = f"{label}\n{pct:.0f}%"
+    else:
+        title = label
     # decide whether the subtitle fits: need enough vertical room beyond the title
     title_fs = fit_font(title, dx, dy * (0.62 if sub else 1.0))
     show_sub = bool(sub) and area > 2.2
