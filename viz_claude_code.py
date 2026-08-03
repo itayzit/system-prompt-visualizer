@@ -76,12 +76,9 @@ for (label, tok, cat, sub), r, col in zip(SEGMENTS, rects, colors):
     area = dx * dy
     pct = tok / total * 100
 
-    if area > 8:
-        title = f"{label}\n{pct:.0f}% · {tok:,} tk"
-    elif area > 4.5:
-        title = f"{label}\n{pct:.0f}%"
-    else:
-        title = label
+    title = f"{label}\n{pct:.0f}%"
+    # canvas is 100x100 = 10,000 area units; tokens only on genuinely big cells
+    show_tok = area > 400
     # decide whether the subtitle fits: need enough vertical room beyond the title
     title_fs = fit_font(title, dx, dy * (0.62 if sub else 1.0))
     show_sub = bool(sub) and area > 2.2
@@ -89,9 +86,9 @@ for (label, tok, cat, sub), r, col in zip(SEGMENTS, rects, colors):
         sub_fs = min(title_fs * 0.62, fit_font(sub, dx, dy * 0.30, max_pt=11.0))
         if sub_fs < 5.5:
             show_sub = False
+    tok_fs = min(title_fs * 0.52, 12.0)
 
     if show_sub:
-        # title block sits above center, subtitle anchored in the lower part of the cell
         ax.text(x + dx/2, y + dy*0.42, title, ha='center', va='center',
                 fontsize=title_fs, color='white', fontweight='bold', linespacing=1.1)
         ax.text(x + dx/2, y + dy*0.80, sub, ha='center', va='center',
@@ -100,6 +97,11 @@ for (label, tok, cat, sub), r, col in zip(SEGMENTS, rects, colors):
         fs = fit_font(title, dx, dy)
         ax.text(x + dx/2, y + dy/2, title, ha='center', va='center',
                 fontsize=fs, color='white', fontweight='bold', linespacing=1.1)
+    if show_tok:
+        # small muted count tucked in the bottom-right corner, out of everything's way
+        ax.text(x + dx - dx*0.03, y + dy - dy*0.035, f"{tok:,} tokens",
+                ha='right', va='bottom', fontsize=tok_fs,
+                color='white', alpha=0.55, linespacing=1.0)
 
 ax.set_xlim(0, 100); ax.set_ylim(0, 100)
 ax.invert_yaxis(); ax.axis('off')
