@@ -55,14 +55,14 @@ GROUPS = {
     'Bash':              ('Bash', 'tools', 'runs shell commands'),
     'Agent':             ('Agent tool', 'tools', 'spawns subagents'),
     '__agents_roster__': ('Agent tool', 'tools', ''),
-    'PushNotification':  ('Other tools ×7', 'tools', 'web, messaging, findings…'),
-    'Skill':             ('Other tools ×7', 'tools', ''),
-    'RemoteTrigger':     ('Other tools ×7', 'tools', ''),
-    'SendMessage':       ('Other tools ×7', 'tools', ''),
-    'WebFetch':          ('Other tools ×7', 'tools', ''),
-    'WebSearch':         ('Other tools ×7', 'tools', ''),
-    'ReportFindings':    ('Other tools ×7', 'tools', ''),
-    '__skills_catalog__':('Skill catalog', 'tools', 'available /slash-commands'),
+    'PushNotification':  ('Messaging\n(3 tools)', 'tools', 'pings users, agents & sessions'),
+    'RemoteTrigger':     ('Messaging\n(3 tools)', 'tools', ''),
+    'SendMessage':       ('Messaging\n(3 tools)', 'tools', ''),
+    'WebFetch':          ('Web fetch\n& search', 'tools', ''),
+    'WebSearch':         ('Web fetch\n& search', 'tools', ''),
+    'ReportFindings':    ('ReportFindings', 'tools', 'posts code-review results'),
+    'Skill':             ('Skills\n(/commands)', 'tools', 'catalog + how to run them'),
+    '__skills_catalog__':('Skills\n(/commands)', 'tools', ''),
     'Communicating with the user': ('Communication\nrules', 'process', 'how to report to the user'),
     'Delivering work':   ('Delivering work\n& corrections', 'process', 'scope, ambiguity, self-correction'),
     'Corrections':       ('Delivering work\n& corrections', 'process', ''),
@@ -160,7 +160,8 @@ def parse(path):
     return segs, total
 
 
-def render(slug, model_name, segs, total, captured):
+def render(slug, model_name, segs, total, captured, cats=None):
+    cats = cats or CATS
     cat_tot = defaultdict(int)
     for _, t, c, _ in segs:
         cat_tot[c] += t
@@ -171,7 +172,7 @@ def render(slug, model_name, segs, total, captured):
     ax.set_facecolor('#eef0f4')
 
     sizes = [t for _, t, _, _ in segs]
-    colors = [CATS[c][1] for _, _, c, _ in segs]
+    colors = [cats[c][1] for _, _, c, _ in segs]
     rects = squarify.squarify(squarify.normalize_sizes(sizes, 100, 100), 0, 0, 100, 100)
 
     fig_w_in, fig_h_in = 15 * 0.94, 9.4 * 0.78
@@ -226,13 +227,16 @@ def render(slug, model_name, segs, total, captured):
              fontsize=13.5, color='#5a5f68')
 
     lx = 0.03
-    for c, (lbl, col) in CATS.items():
+    compact = len(cats) > 5
+    leg_fs = 10.5 if compact else 12
+    leg_adv = 0.0063 if compact else 0.0072
+    for c, (lbl, col) in cats.items():
         pct = cat_tot[c] / total * 100
         fig.patches.append(mpatches.Rectangle((lx, 0.852), 0.016, 0.016,
                            transform=fig.transFigure, facecolor=col, edgecolor='none'))
         t = f"{lbl} {pct:.0f}%"
-        fig.text(lx + 0.022, 0.853, t, fontsize=12, color='#333940', fontweight='bold')
-        lx += 0.022 + 0.0072 * len(t) + 0.018
+        fig.text(lx + 0.022, 0.853, t, fontsize=leg_fs, color='#333940', fontweight='bold')
+        lx += 0.022 + leg_adv * len(t) + 0.014
 
     fig.text(0.03, 0.012, "Source: leaked Claude Code system prompt (asgeirtj/system_prompts_leaks) · tokens via tiktoken cl100k_base",
              fontsize=9, color='#8a8f98')
@@ -254,3 +258,29 @@ for slug, model_name, path, captured in MODELS:
         print(f"  {lbl:<18} {cat_tot[c]:>6,}  {cat_tot[c]/total*100:5.1f}%")
     out = render(slug, model_name, segs, total, captured)
     print(f"Saved → {out}")
+
+
+# ── Alt-color variant: split "tools" into functional families (Fable 5 only) ──
+ALT_CATS = {
+    'orch':    ('Orchestration', '#1d4ed8'),
+    'code':    ('Coding & web',  '#3b82f6'),
+    'ai':      ('claude.ai',     '#0891b2'),
+    'user':    ('User I/O',      '#0d9488'),
+    'process': ('Process',       '#f97316'),
+    'memory':  ('Memory',        '#a855f7'),
+    'identity':('Identity',      '#10b981'),
+    'safety':  ('Safety',        '#ef4444'),
+}
+FAMILY = {
+    'Workflow tool': 'orch', 'Agent tool': 'orch', 'Task tracking\n(6 tools)': 'orch',
+    'Monitor': 'orch', 'ScheduleWakeup': 'orch', 'Cron jobs\n(3 tools)': 'orch',
+    'Messaging\n(3 tools)': 'orch', 'EndConversation': 'orch',
+    'Bash': 'code', 'File tools\n(4 tools)': 'code', 'Worktrees\n(2 tools)': 'code',
+    'Plan mode\n(2 tools)': 'code', 'Web fetch\n& search': 'code',
+    'Artifact': 'ai', 'DesignSync': 'ai',
+    'AskUserQuestion': 'user', 'ReportFindings': 'user', 'Skills\n(/commands)': 'user',
+}
+segs, total = parse('prompts/claude-code-fable-5.txt')
+alt_segs = [(lbl, t, FAMILY.get(lbl, c), sub) for lbl, t, c, sub in segs]
+out = render('fable-5-alt', 'Fable 5', alt_segs, total, 'July 2026', cats=ALT_CATS)
+print(f"Saved → {out}")

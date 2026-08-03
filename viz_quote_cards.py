@@ -72,3 +72,32 @@ fig.text(0.04, 0.025, "Source: asgeirtj/system_prompts_leaks · quote verbatim",
 plt.savefig('examples/claude-code-mythos-card.png', dpi=150, facecolor=BG, bbox_inches='tight')
 plt.close(fig)
 print("Saved → examples/claude-code-mythos-card.png")
+
+
+# ── Card C: cache-billing awareness ───────────────────────────────────
+fig = plt.figure(figsize=(15, 7.2), facecolor=BG)
+
+fig.text(0.04, 0.90, "From the section teaching Claude to schedule its own wake-ups:", fontsize=15, color=GRAY)
+
+lines = [
+    ('\u201cThis session\u2019s requests use a 1-hour Anthropic', DARK),
+    ('prompt-cache TTL \u2026 scheduling extra wakeups just to', DARK),
+    ('keep the cache warm is pure waste \u2014 never do that.', DARK),
+    ('If the session enters usage overage, later', RED),
+    ('requests drop to the 5-minute TTL.\u201d', RED),
+]
+y = 0.76
+for txt, col in lines:
+    fig.text(0.04, y, txt, fontsize=23, color=col, fontweight='bold', va='top', linespacing=1.3)
+    y -= 0.107
+
+fig.text(0.04, 0.16, "The model is told your billing state. It schedules its own sleep around your invoice.",
+         fontsize=14, color=GRAY, style='italic')
+fig.text(0.04, 0.075, "\u2014 Claude Code system prompt (Fable 5), ScheduleWakeup tool, captured July 2026",
+         fontsize=13, color=GRAY, style='italic')
+fig.text(0.04, 0.025, "Source: asgeirtj/system_prompts_leaks \u00b7 quote verbatim",
+         fontsize=9.5, color=LIGHT)
+
+plt.savefig('examples/claude-code-cache-card.png', dpi=150, facecolor=BG, bbox_inches='tight')
+plt.close(fig)
+print("Saved → examples/claude-code-cache-card.png")
