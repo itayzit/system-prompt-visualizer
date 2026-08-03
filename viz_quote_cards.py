@@ -11,40 +11,55 @@ BLUE = '#3b82f6'
 ORANGE = '#f97316'
 RED = '#ef4444'
 
-# ── Card A: Fable 5 vs Opus 5 psychology ──────────────────────────────
-fig = plt.figure(figsize=(15, 8.4), facecolor=BG)
+# ── Card A: Fable 5 vs Opus 5 psychology (diff-card visual language) ──
+MONO_A = 'DejaVu Sans Mono'
+F_HDR_BG, F_HDR_FG, F_LINE_BG = '#dbeafe', '#1e40af', '#e9f0fc'
+O_HDR_BG, O_HDR_FG, O_LINE_BG = '#ffedd5', '#9a3412', '#fdf3e7'
 
-fig.text(0.04, 0.93, "Same tools. Different coaching.", fontsize=27, color=DARK, fontweight='bold')
-fig.text(0.04, 0.875, "Claude Code ships byte-identical tool definitions to both models — the only per-model difference is ~1,500 tokens of behavioral prose.",
-         fontsize=12.5, color=GRAY)
+fig = plt.figure(figsize=(15, 7.5), facecolor=BG)
+fig.text(0.04, 0.945, "$ diff claude-code/{fable-5, opus-5}.prompt   # behavior sections only",
+         fontsize=15, color=GRAY, family=MONO_A)
 
-cols = [
-    (0.04, BLUE, 'FABLE 5', 'coached for autonomy', [
-        '“You are operating autonomously. The user is not\nwatching in real time … asking ‘Want me to…?’ or\n‘Shall I…?’ will block the work.”',
-        '“Before ending your turn, check your last paragraph.\nIf it is … a promise about work you have not done\n(‘I’ll…’, ‘let me know when…’), do that work now.”',
-        '“Do not stop because the context or session is long.”',
-    ]),
-    (0.53, ORANGE, 'OPUS 5', 'coached against rumination', [
-        '“Don’t add apologies or preambles, don’t be overly\nself-critical, and don’t ruminate … or tally past errors.”',
-        '“A follow-up question about your earlier work is not,\nby itself, a signal that you got something wrong.”',
-        '“Scaling the work down is the user’s call, not yours.”',
-    ]),
+A_LINES = [
+    ('fhdr', '@@ Fable 5 \u2014 coached for autonomy @@'),
+    ('fq', '+ "You are operating autonomously. The user is not'),
+    ('fq', '+  watching in real time \u2026 asking \u2018Want me to\u2026?\u2019'),
+    ('fq', '+  will block the work."'),
+    ('fq', '+ "Do not stop because the context or session is long."'),
+    ('gap', ''),
+    ('ohdr', '@@ Opus 5 \u2014 coached against rumination @@'),
+    ('oq', '+ "Don\u2019t add apologies or preambles, don\u2019t be overly'),
+    ('oq', '+  self-critical, and don\u2019t ruminate \u2026 or tally past errors."'),
+    ('oq', '+ "A follow-up question about your earlier work is not,'),
+    ('oq', '+  by itself, a signal that you got something wrong."'),
+    ('oq', '+ "Scaling the work down is the user\u2019s call, not yours."'),
 ]
 
-for x0, color, name, tagline, quotes in cols:
-    fig.patches.append(mpatches.Rectangle((x0, 0.775), 0.017, 0.028,
-                       transform=fig.transFigure, facecolor=color, edgecolor='none'))
-    fig.text(x0 + 0.026, 0.778, name, fontsize=17, color=DARK, fontweight='bold')
-    fig.text(x0 + 0.026 + 0.012*len(name), 0.7795, f'— {tagline}', fontsize=13, color=GRAY, style='italic')
-    for q, y in zip(quotes, [0.68, 0.47, 0.26]):
-        fig.text(x0, y, q, fontsize=13.5, color=DARK, va='top', linespacing=1.45)
+y = 0.845
+LH = 0.0605
+for kind, txt in A_LINES:
+    if kind == 'gap':
+        y -= LH * 0.55
+        continue
+    bg = {'fhdr': F_HDR_BG, 'fq': F_LINE_BG, 'ohdr': O_HDR_BG, 'oq': O_LINE_BG}[kind]
+    fg = {'fhdr': F_HDR_FG, 'fq': DARK, 'ohdr': O_HDR_FG, 'oq': DARK}[kind]
+    fig.patches.append(mpatches.Rectangle((0.03, y - 0.012), 0.94, LH * 0.88,
+                       transform=fig.transFigure, facecolor=bg, edgecolor='none'))
+    fig.text(0.045, y, txt, fontsize=15.5, color=fg, family=MONO_A,
+             fontweight='bold' if kind.endswith('hdr') else 'normal', va='center')
+    y -= LH
 
-fig.text(0.04, 0.035, "Source: leaked Claude Code system prompts, July 2026 (asgeirtj/system_prompts_leaks) · quotes verbatim, trimmed with ellipses",
+fig.text(0.04, 0.10, "Tool definitions are identical between the two models \u2014 the coaching is the diff.",
+         fontsize=13, color=GRAY, style='italic')
+fig.text(0.04, 0.058, "\u2014 Claude Code system prompts, captured July 2026 \u00b7 quotes verbatim",
+         fontsize=12.5, color=GRAY, style='italic')
+fig.text(0.04, 0.022, "Source: asgeirtj/system_prompts_leaks",
          fontsize=9.5, color=LIGHT)
 
 plt.savefig('examples/claude-code-psychology-card.png', dpi=150, facecolor=BG, bbox_inches='tight')
 plt.close(fig)
 print("Saved → examples/claude-code-psychology-card.png")
+
 
 # ── Card B: the Mythos paragraph ──────────────────────────────────────
 fig = plt.figure(figsize=(15, 7.2), facecolor=BG)
